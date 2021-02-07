@@ -27,18 +27,30 @@ import './Board.css';
  *
  **/
 
-function Board({ nrows, ncols, chanceLightStartsOn }) {
-	const [ board, setBoard ] = useState(createBoard());
+function Board({ nrows = 3, ncols = 5, chanceLightStartsOn= .5 }) {
+  const [ board, setBoard ] = useState(createBoard());
 
 	/** create a board nrows high/ncols wide, each cell randomly lit or unlit */
 	function createBoard() {
 		let initialBoard = [];
-		// TODO: create array-of-arrays of true/false values
+		for (let i = 0; i < nrows; i++) {
+      let innerArr = []
+      for (let j = 0; j < ncols; j++) {
+        innerArr.push(Math.random() < chanceLightStartsOn)
+      }
+      initialBoard.push(innerArr)
+		}
 		return initialBoard;
 	}
 
 	function hasWon() {
-		// TODO: check the board in state to determine whether the player has won.
+		// check the board in state to determine whether the player has won.
+		for (let i = 0; i < board.length; i++) {
+			for (let j = 0; j < board[i].length; j++) {
+				if (board[i][j] === true) return false;
+			}
+		}
+		return true;
 	}
 
 	function flipCellsAround(coord) {
@@ -47,27 +59,42 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
 
 			const flipCell = (y, x, boardCopy) => {
 				// if this coord is actually on board, flip it
-
 				if (x >= 0 && x < ncols && y >= 0 && y < nrows) {
 					boardCopy[y][x] = !boardCopy[y][x];
 				}
 			};
+			// Make a (deep) copy of the oldBoard
+			const boardCopy = JSON.parse(JSON.stringify(oldBoard));
 
-			// TODO: Make a (deep) copy of the oldBoard
+			// in the copy, flip this cell and the cells around it
+			flipCell(y + 1, x, boardCopy);
+			flipCell(y - 1, x, boardCopy);
+			flipCell(y, x + 1, boardCopy);
+			flipCell(y, x - 1, boardCopy);
+			flipCell(y, x, boardCopy);
 
-			// TODO: in the copy, flip this cell and the cells around it
-
-			// TODO: return the copy
+			return boardCopy;
 		});
 	}
 
 	// if the game is won, just show a winning msg & render nothing else
+	if (hasWon()) return <h2>You Won!!!</h2>;
 
-	// TODO
+	function makeRow(arr, y) {
+		return arr.map((light, idx) => (
+			<Cell flipCellsAroundMe={flipCellsAround} isLit={light} coords={`${y}-${idx}`} key={`${y}-${idx}`} />
+		));
+	}
 
 	// make table board
-
-	// TODO
+	return (
+    <>
+    <h1>Lights Out</h1>
+		<table className="Board">
+			<tbody>{board.map((row, idx) => <tr key={idx}>{makeRow(row, idx)}</tr>)}</tbody>
+		</table>
+    </>
+	);
 }
 
 export default Board;
